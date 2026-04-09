@@ -39,7 +39,13 @@ export function renderClientes(container) {
   const store = getStore();
 
   const renderList = (q = '') => {
-    const list = store.clientes.filter(c => !q || c.nombre.toLowerCase().includes(q.toLowerCase()));
+    const list = store.clientes.filter(c => {
+       if (!q) return true;
+       const search = q.toLowerCase();
+       const hName = c.nombre.toLowerCase().includes(search);
+       const hDni = c.dni ? c.dni.toLowerCase().includes(search) : false;
+       return hName || hDni;
+    });
     
     if (!list.length) {
       return `<div class="empty-state">
@@ -197,16 +203,26 @@ export function renderClientes(container) {
   document.getElementById('btn-save-cliente').addEventListener('click', () => {
     const hiddenId = document.getElementById('cl-id').value;
     const nombre = document.getElementById('cl-nombre').value.trim();
+    const dniInput = document.getElementById('cl-dni').value.trim();
+    
     if (!nombre) {
       alert('El nombre es obligatorio');
       return;
+    }
+
+    if (dniInput) {
+      const duplicado = store.clientes.find(c => c.dni === dniInput && c.id !== hiddenId);
+      if (duplicado) {
+        alert('Este DNI/Identificador ya se encuentra registrado a nombre de: ' + duplicado.nombre);
+        return;
+      }
     }
     
     if (hiddenId) {
        const c = store.clientes.find(x => x.id === hiddenId);
        if (c) {
           c.nombre = nombre;
-          c.dni = document.getElementById('cl-dni').value.trim();
+          c.dni = dniInput;
           c.tel = document.getElementById('cl-tel').value.trim();
           c.email = document.getElementById('cl-email').value.trim();
           c.notas = document.getElementById('cl-notas').value.trim();
@@ -215,7 +231,7 @@ export function renderClientes(container) {
        store.clientes.push({
          id: uid(),
          nombre,
-         dni: document.getElementById('cl-dni').value.trim(),
+         dni: dniInput,
          tel: document.getElementById('cl-tel').value.trim(),
          email: document.getElementById('cl-email').value.trim(),
          notas: document.getElementById('cl-notas').value.trim()
