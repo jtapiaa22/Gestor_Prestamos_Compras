@@ -1,4 +1,4 @@
-import { getStore, saveStore } from '../state/store.js';
+import { getStore, addCliente, updateCliente, removeCliente } from '../state/store.js';
 import { uid, formatMoney } from '../utils/helpers.js';
 
 window.__eliminarCliente = function(id) {
@@ -12,10 +12,10 @@ window.__eliminarCliente = function(id) {
   }
 
   if (confirm('¿Estás seguro de eliminar este cliente?')) {
-    store.clientes = store.clientes.filter(x => x.id !== id);
-    saveStore();
-    const event = new Event('re-render-clientes');
-    window.dispatchEvent(event);
+    removeCliente(id).then(() => {
+      const event = new Event('re-render-clientes');
+      window.dispatchEvent(event);
+    });
   }
 };
 
@@ -219,27 +219,31 @@ export function renderClientes(container) {
     }
     
     if (hiddenId) {
-       const c = store.clientes.find(x => x.id === hiddenId);
-       if (c) {
-          c.nombre = nombre;
-          c.dni = dniInput;
-          c.tel = document.getElementById('cl-tel').value.trim();
-          c.email = document.getElementById('cl-email').value.trim();
-          c.notas = document.getElementById('cl-notas').value.trim();
-       }
+       const target = {
+          id: hiddenId,
+          nombre,
+          dni: dniInput,
+          tel: document.getElementById('cl-tel').value.trim(),
+          email: document.getElementById('cl-email').value.trim(),
+          notas: document.getElementById('cl-notas').value.trim()
+       };
+       updateCliente(target).then(() => {
+         window.closeModal('modal-cliente');
+         document.getElementById('clientes-list-container').innerHTML = renderList(document.getElementById('search-clientes').value);
+       });
     } else {
-       store.clientes.push({
+       const newTarget = {
          id: uid(),
          nombre,
          dni: dniInput,
          tel: document.getElementById('cl-tel').value.trim(),
          email: document.getElementById('cl-email').value.trim(),
          notas: document.getElementById('cl-notas').value.trim()
+       };
+       addCliente(newTarget).then(() => {
+         window.closeModal('modal-cliente');
+         document.getElementById('clientes-list-container').innerHTML = renderList(document.getElementById('search-clientes').value);
        });
     }
-    
-    saveStore();
-    window.closeModal('modal-cliente');
-    document.getElementById('clientes-list-container').innerHTML = renderList(document.getElementById('search-clientes').value);
   });
 }
