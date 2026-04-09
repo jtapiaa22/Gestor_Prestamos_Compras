@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -11,6 +12,7 @@
   <link rel="stylesheet" href="/src/styles/main.css">
   <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
 </head>
+
 <body>
   <div id="app">
     <!-- Barra lateral para desktop -->
@@ -18,9 +20,10 @@
       <div class="brand" style="display:flex; justify-content:space-between; align-items:center; width:100%;">
         <div>
           <i class="ri-wallet-3-fill brand-icon"></i>
-          <span>FinControl</span>
+          <span>Control</span>
         </div>
-        <button class="btn-icon text-muted" onclick="window.__logout()" title="Cerrar sesión"><i class="ri-logout-box-r-line"></i></button>
+        <button class="btn-icon text-muted" onclick="window.__logout()" title="Cerrar sesión"><i
+            class="ri-logout-box-r-line"></i></button>
       </div>
       <nav class="desktop-nav">
         <!-- Generado dinámicamente -->
@@ -35,11 +38,12 @@
           <span>FinControl</span>
         </div>
         <div style="display: flex; gap: 8px;">
-          <button class="btn-icon" style="color: var(--text-muted);" onclick="window.__logout()"><i class="ri-logout-box-r-line"></i></button>
+          <button class="btn-icon" style="color: var(--text-muted);" onclick="window.__logout()"><i
+              class="ri-logout-box-r-line"></i></button>
           <button id="btn-add-global" class="btn-icon btn-acc"><i class="ri-add-line"></i></button>
         </div>
       </header>
-      
+
       <div id="view-container" class="view-container">
         <!-- Vistas renderizadas aquí -->
       </div>
@@ -53,4 +57,5 @@
 
   <script type="module" src="/src/main.js"></script>
 </body>
+
 </html>
