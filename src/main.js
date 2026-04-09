@@ -111,6 +111,16 @@ window.closeModal = function(id) {
   if (modal) modal.classList.remove('active');
 };
 
+window.openDetalle = function(tipo, id) {
+  if (tipo === 'compra') {
+    navigate('compras');
+    setTimeout(() => { if (window.__verDetalleCompra) window.__verDetalleCompra(id); }, 50);
+  } else if (tipo === 'prestamo') {
+    navigate('prestamos');
+    setTimeout(() => { if (window.__verDetallePrestamo) window.__verDetallePrestamo(id); }, 50);
+  }
+};
+
 window.__logout = async function() {
   if (confirm('¿Cerrar la sesión de administrador de tu base de datos?')) {
     await supabase.auth.signOut();

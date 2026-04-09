@@ -26,14 +26,14 @@ export function renderDashboard(container) {
   store.compras.forEach(c => {
     c.cuotas.forEach(cu => {
       if (!cu.pagada && (isVencida(cu.vence) || isPronto(cu.vence))) {
-        vens.push({ label: c.desc, cliente: getNombreCliente(store, c.clienteId), vence: cu.vence, monto: c.montoCuota, tipo: 'compra', vencida: isVencida(cu.vence) });
+        vens.push({ id: c.id, label: c.desc, cliente: getNombreCliente(store, c.clienteId), vence: cu.vence, monto: c.montoCuota, tipo: 'compra', vencida: isVencida(cu.vence) });
       }
     });
   });
   store.prestamos.forEach(p => {
     p.cuotas.forEach(cu => {
       if (!cu.pagada && (isVencida(cu.vence) || isPronto(cu.vence))) {
-        vens.push({ label: 'Préstamo', cliente: getNombreCliente(store, p.clienteId), vence: cu.vence, monto: p.montoCuota, tipo: 'prestamo', vencida: isVencida(cu.vence) });
+        vens.push({ id: p.id, label: 'Préstamo', cliente: getNombreCliente(store, p.clienteId), vence: cu.vence, monto: p.montoCuota, tipo: 'prestamo', vencida: isVencida(cu.vence) });
       }
     });
   });
@@ -72,7 +72,7 @@ export function renderDashboard(container) {
         <h3>Últimas Compras</h3>
         ${ultCompras.length ? `<div class="flex-col gap-3">
           ${ultCompras.map(c => `
-            <div class="flex justify-between items-center pb-2" style="border-bottom: 1px solid var(--border-color)">
+            <div class="flex justify-between items-center pb-2" style="border-bottom: 1px solid var(--border-color); cursor: pointer;" onclick="window.openDetalle('compra', '${c.id}')">
               <div class="flex gap-2 items-center">
                 <div style="width: 8px; height: 8px; border-radius: 50%; background: var(--info)"></div>
                 <div>
@@ -92,7 +92,7 @@ export function renderDashboard(container) {
           ${actPres.map(p => {
             const pend = p.cuotas.filter(c => !c.pagada).length * p.montoCuota;
             return `
-            <div class="flex justify-between items-center pb-2" style="border-bottom: 1px solid var(--border-color)">
+            <div class="flex justify-between items-center pb-2" style="border-bottom: 1px solid var(--border-color); cursor: pointer;" onclick="window.openDetalle('prestamo', '${p.id}')">
               <div class="flex gap-2 items-center">
                 <div style="width: 8px; height: 8px; border-radius: 50%; background: var(--success)"></div>
                 <div>
@@ -115,7 +115,7 @@ export function renderDashboard(container) {
             <thead><tr><th>Cliente</th><th>Detalle</th><th>Vencimiento</th><th>Monto</th><th>Estado</th></tr></thead>
             <tbody>
               ${vens.map(v => `
-                <tr>
+                <tr style="cursor: pointer;" onclick="window.openDetalle('${v.tipo}', '${v.id}')">
                   <td style="font-weight:500; font-size:0.8rem">${v.cliente}</td>
                   <td style="font-size:0.8rem">${v.label}</td>
                   <td style="font-size:0.8rem">${formatFecha(v.vence)}</td>

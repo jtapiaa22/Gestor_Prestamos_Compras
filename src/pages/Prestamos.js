@@ -160,6 +160,10 @@ export function renderPrestamos(container) {
               <option value="24">24 cuotas</option>
             </select>
           </div>
+          <div class="form-group">
+            <label>Tasa (%)</label>
+            <input type="number" id="p-tasa" class="input-control" placeholder="Automática">
+          </div>
           <div class="form-group" style="grid-column: 1 / -1;">
             <label>Fecha 1er Vencimiento</label>
             <input type="date" id="p-fecha1" class="input-control" value="${new Date().toISOString().split('T')[0]}">
@@ -190,7 +194,12 @@ export function renderPrestamos(container) {
     const m = parseCurrencyInput(document.getElementById('p-monto').value);
     const n = parseInt(document.getElementById('p-ncuotas').value) || 1;
     
-    const tasa = store.tasas[n] !== undefined ? store.tasas[n] : getTasaInterpolada(store.tasas, n);
+    // Tasa manual o sugerida automtica
+    const autoTasa = store.tasas[n] !== undefined ? store.tasas[n] : getTasaInterpolada(store.tasas, n);
+    document.getElementById('p-tasa').placeholder = `Sug: ${autoTasa}%`;
+    const tasaInput = document.getElementById('p-tasa').value;
+    const tasa = tasaInput !== '' ? parseFloat(tasaInput) : autoTasa;
+    
     const totalDev = m * (1 + tasa / 100);
     const montoCuota = totalDev / n;
     const gan = totalDev - m;
@@ -209,6 +218,7 @@ export function renderPrestamos(container) {
 
   document.getElementById('p-monto').addEventListener('input', calcPreview);
   document.getElementById('p-ncuotas').addEventListener('change', calcPreview);
+  document.getElementById('p-tasa').addEventListener('input', calcPreview);
   
   if (document.getElementById('p-monto')) formatCurrencyInput(document.getElementById('p-monto'));
 
@@ -237,7 +247,10 @@ export function renderPrestamos(container) {
       return;
     }
     
-    const tasa = store.tasas[n] !== undefined ? store.tasas[n] : getTasaInterpolada(store.tasas, n);
+    const autoTasa = store.tasas[n] !== undefined ? store.tasas[n] : getTasaInterpolada(store.tasas, n);
+    const tasaInput = document.getElementById('p-tasa').value;
+    const tasa = tasaInput !== '' ? parseFloat(tasaInput) : autoTasa;
+    
     const totalDev = m * (1 + tasa / 100);
     const montoCuota = totalDev / n;
     const cuotas = addCuotasVencimiento(fecha1, n);
@@ -259,6 +272,7 @@ export function renderPrestamos(container) {
     window.closeModal('modal-new-prestamo');
     document.getElementById('p-monto').value = '';
     document.getElementById('p-ncuotas').value = '1';
+    document.getElementById('p-tasa').value = '';
     document.getElementById('p-preview').innerHTML = '';
     
     document.getElementById('prestamos-list-container').innerHTML = renderHistorial();
