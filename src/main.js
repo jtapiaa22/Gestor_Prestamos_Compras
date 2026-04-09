@@ -1,9 +1,11 @@
-import { initStore, subscribe } from './state/store.js';
 import { renderDashboard } from './pages/Dashboard.js';
 import { renderClientes } from './pages/Clientes.js';
 import { renderCompras } from './pages/Compras.js';
 import { renderPrestamos } from './pages/Prestamos.js';
 import { renderConfiguracion } from './pages/Configuracion.js';
+import { initStore, subscribe } from './state/store.js';
+import { supabase } from './supabaseClient.js';
+import { renderLogin } from './pages/Login.js';
 
 const routes = {
   'dashboard': { icon: 'ri-dashboard-fill', label: 'Inicio', render: renderDashboard },
@@ -16,9 +18,18 @@ const routes = {
 let currentRoute = 'dashboard';
 
 async function initApp() {
-  // Renderizar feedback visual de carga si se desea (opcional)
   const container = document.getElementById('view-container');
-  if (container) container.innerHTML = '<div class="empty-state"><i class="ri-loader-4-line" style="animation: spin 1s linear infinite;"></i><div>Conectando con Servidor...</div></div>';
+  if (container) container.innerHTML = '<div class="empty-state"><i class="ri-loader-4-line spin" style="font-size: 2rem;"></i><div class="mt-2">Conectando...</div></div>';
+  
+  const { data: { session } } = await supabase.auth.getSession();
+  
+  if (!session) {
+    document.body.classList.add('is-unauthenticated');
+    renderLogin(container);
+    return;
+  }
+  
+  document.body.classList.remove('is-unauthenticated');
   
   await initStore();
   setupNavigation();
@@ -98,6 +109,13 @@ window.openModal = function(id) {
 window.closeModal = function(id) {
   const modal = document.getElementById(id);
   if (modal) modal.classList.remove('active');
+};
+
+window.__logout = async function() {
+  if (confirm('¿Cerrar la sesión de administrador de tu base de datos?')) {
+    await supabase.auth.signOut();
+    window.location.reload();
+  }
 };
 
 document.addEventListener('DOMContentLoaded', initApp);
