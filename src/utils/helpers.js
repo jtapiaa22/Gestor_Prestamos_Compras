@@ -48,3 +48,34 @@ export function getTasaInterpolada(tasas, n) {
   }
   return tasas[keys[keys.length-1]] || 0;
 }
+
+export function formatCurrencyInput(inputField) {
+  inputField.addEventListener('input', function(e) {
+    let cursor = e.target.selectionStart;
+    const originalLength = e.target.value.length;
+    
+    let val = e.target.value.replace(/[^0-9,]/g, '');
+    const parts = val.split(',');
+    if (parts.length > 2) {
+      val = parts[0] + ',' + parts.slice(1).join('');
+    }
+
+    if (val !== '') {
+      const p = val.split(',');
+      p[0] = p[0].replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+      val = p.join(',');
+    }
+    
+    e.target.value = val;
+    
+    const newLength = e.target.value.length;
+    cursor = cursor + (newLength - originalLength);
+    e.target.setSelectionRange(cursor, cursor);
+  });
+}
+
+export function parseCurrencyInput(valString) {
+  if (!valString) return 0;
+  const clean = String(valString).replace(/\./g, '').replace(',', '.');
+  return parseFloat(clean) || 0;
+}
