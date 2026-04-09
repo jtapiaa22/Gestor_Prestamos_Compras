@@ -7,7 +7,7 @@ function getNombreCliente(store, id) {
 }
 
 // Para que el scope global funcione en los botones renderizados como string html
-window.__toggleCuotaCompra = function(cid, idx) {
+window.__toggleCuotaCompra = function (cid, idx) {
   const store = getStore();
   const c = store.compras.find(x => x.id === cid);
   if (c) {
@@ -17,7 +17,7 @@ window.__toggleCuotaCompra = function(cid, idx) {
   }
 };
 
-window.__eliminarCompra = function(id) {
+window.__eliminarCompra = function (id) {
   if (confirm('¿Estás seguro de eliminar esta compra?')) {
     const store = getStore();
     store.compras = store.compras.filter(x => x.id !== id);
@@ -27,14 +27,14 @@ window.__eliminarCompra = function(id) {
   }
 };
 
-window.__verDetalleCompra = function(id) {
+window.__verDetalleCompra = function (id) {
   const store = getStore();
   const c = store.compras.find(x => x.id === id);
   if (!c) return;
-  
+
   const el = document.getElementById('modal-compra-content');
   if (!el) return;
-  
+
   el.innerHTML = `
     <h3>${c.desc}</h3>
     <div class="text-xs text-muted mb-4">${getNombreCliente(store, c.clienteId)} • ${c.tarjeta}</div>
@@ -47,9 +47,9 @@ window.__verDetalleCompra = function(id) {
     
     <div class="flex-col gap-2">
       ${c.cuotas.map(cu => {
-        const ven = isVencida(cu.vence) && !cu.pagada;
-        const pronto = isPronto(cu.vence) && !cu.pagada;
-        return `
+    const ven = isVencida(cu.vence) && !cu.pagada;
+    const pronto = isPronto(cu.vence) && !cu.pagada;
+    return `
         <div class="flex items-center gap-3 p-2 border-b border-color" style="border-bottom: 1px solid var(--border-color)">
           <div style="width:28px; height:28px; border-radius:50%; background:${cu.pagada ? 'var(--success)' : ven ? 'var(--danger)' : 'var(--bg-elevated)'}; color:${cu.pagada || ven ? '#fff' : 'inherit'}; display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:700;">
             ${cu.num}
@@ -63,7 +63,7 @@ window.__verDetalleCompra = function(id) {
           </button>
         </div>
         `;
-      }).join('')}
+  }).join('')}
     </div>
   `;
   window.openModal('modal-compra');
@@ -81,7 +81,7 @@ export function renderCompras(container) {
       const pagadas = c.cuotas.filter(x => x.pagada).length;
       const pct = Math.round((pagadas / c.ncuotas) * 100);
       const venc = c.cuotas.filter(x => !x.pagada && isVencida(x.vence)).length;
-      
+
       return `
         <div class="card mb-4">
           <div class="flex justify-between items-start mb-3">
@@ -153,7 +153,7 @@ export function renderCompras(container) {
             <input type="text" id="c-desc" class="input-control" placeholder="Ej: TV Samsung 55'">
           </div>
           <div class="form-group">
-            <label>Precio de Costo ($)</label>
+            <label>Precio al que compró ($)</label>
             <input type="number" id="c-costo" class="input-control" placeholder="0" min="0">
           </div>
           <div class="form-group">
@@ -198,9 +198,9 @@ export function renderCompras(container) {
     const gan = total - costo;
     const pct = costo > 0 ? ((gan / costo) * 100).toFixed(1) : 0;
     const el = document.getElementById('c-preview');
-    
-    if(!costo && !mc) { el.innerHTML = ''; return; }
-    
+
+    if (!costo && !mc) { el.innerHTML = ''; return; }
+
     el.innerHTML = `
       <div style="background: var(--info-glow); border: 1px solid rgba(59, 130, 246, 0.2); border-radius: 8px; padding: 12px; font-size: 0.8rem; display: flex; flex-direction: column; gap: 8px;">
         <div class="flex justify-between"><span>Costo:</span><span>${formatMoney(costo)}</span></div>
@@ -214,14 +214,14 @@ export function renderCompras(container) {
   document.getElementById('c-montocuota').addEventListener('input', calcPreview);
 
   const handleOpenModal = () => window.openModal('modal-new-compra');
-  
+
   if (document.getElementById('btn-add-compra')) {
     document.getElementById('btn-add-compra').addEventListener('click', handleOpenModal);
   }
-  
+
   const globalListener = (e) => { if (e.detail === 'compras') handleOpenModal(); };
   window.addEventListener('global-add-click', globalListener);
-  
+
   window.addEventListener('re-render-compras', () => {
     const listContainer = document.getElementById('compras-list-container');
     if (listContainer) listContainer.innerHTML = renderHistorial();
@@ -235,14 +235,14 @@ export function renderCompras(container) {
     const mc = parseFloat(document.getElementById('c-montocuota').value) || 0;
     const fecha1 = document.getElementById('c-fecha1').value;
     const tarjeta = document.getElementById('c-tarjeta').value;
-    
-    if(!desc || !costo || !mc || !fecha1 || !cid) {
+
+    if (!desc || !costo || !mc || !fecha1 || !cid) {
       alert('Por favor, completá todos los campos.');
       return;
     }
-    
+
     const cuotas = addCuotasVencimiento(fecha1, n);
-    
+
     store.compras.push({
       id: uid(),
       clienteId: cid,
@@ -256,7 +256,7 @@ export function renderCompras(container) {
       cuotas,
       fecha: new Date().toISOString().split('T')[0]
     });
-    
+
     saveStore();
     window.closeModal('modal-new-compra');
     document.getElementById('c-desc').value = '';
@@ -264,7 +264,7 @@ export function renderCompras(container) {
     document.getElementById('c-ncuotas').value = '1';
     document.getElementById('c-montocuota').value = '';
     document.getElementById('c-preview').innerHTML = '';
-    
+
     document.getElementById('compras-list-container').innerHTML = renderHistorial();
   });
 }
