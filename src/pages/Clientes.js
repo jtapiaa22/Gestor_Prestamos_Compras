@@ -1,6 +1,40 @@
 import { getStore, saveStore } from '../state/store.js';
 import { uid, formatMoney } from '../utils/helpers.js';
 
+window.__eliminarCliente = function(id) {
+  const store = getStore();
+  const comp = store.compras.some(x => x.clienteId === id);
+  const pres = store.prestamos.some(x => x.clienteId === id);
+  
+  if (comp || pres) {
+    alert('No puedes eliminar este cliente porque tiene compras o préstamos activos/asociados en su historial. Elimina sus operaciones primero.');
+    return;
+  }
+
+  if (confirm('¿Estás seguro de eliminar este cliente?')) {
+    store.clientes = store.clientes.filter(x => x.id !== id);
+    saveStore();
+    const event = new Event('re-render-clientes');
+    window.dispatchEvent(event);
+  }
+};
+
+window.__editarCliente = function(id) {
+  const store = getStore();
+  const c = store.clientes.find(x => x.id === id);
+  if (!c) return;
+  
+  document.getElementById('cl-id').value = c.id;
+  document.getElementById('cl-nombre').value = c.nombre || '';
+  document.getElementById('cl-dni').value = c.dni || '';
+  document.getElementById('cl-tel').value = c.tel || '';
+  document.getElementById('cl-email').value = c.email || '';
+  document.getElementById('cl-notas').value = c.notas || '';
+  
+  document.getElementById('modal-cliente-title').innerText = 'Editar Cliente';
+  window.openModal('modal-cliente');
+};
+
 export function renderClientes(container) {
   const store = getStore();
 
@@ -23,6 +57,7 @@ export function renderClientes(container) {
               <th>Contacto</th>
               <th>Operaciones</th>
               <th>Deuda</th>
+              <th>Acciones</th>
             </tr>
           </thead>
           <tbody>
@@ -36,6 +71,7 @@ export function renderClientes(container) {
                 <tr>
                   <td>
                     <div style="font-weight: 600">${c.nombre}</div>
+                    ${c.dni ? `<div class="text-xs text-muted mt-1"><i class="ri-id-card-line"></i> DNI: ${c.dni}</div>` : ''}
                     ${c.notas ? `<div class="text-xs text-muted mt-2">${c.notas}</div>` : ''}
                   </td>
                   <td>
@@ -50,6 +86,12 @@ export function renderClientes(container) {
                   </td>
                   <td class="text-accent" style="font-weight: 700">
                     ${pend > 0 ? formatMoney(pend) : '—'}
+                  </td>
+                  <td>
+                    <div class="flex gap-2">
+                      <button class="btn-icon" style="color: var(--info)" onclick="window.__editarCliente('${c.id}')"><i class="ri-edit-line"></i></button>
+                      <button class="btn-icon" style="color: var(--danger)" onclick="window.__eliminarCliente('${c.id}')"><i class="ri-delete-bin-line"></i></button>
+                    </div>
                   </td>
                 </tr>
               `;
@@ -83,13 +125,18 @@ export function renderClientes(container) {
     <div id="modal-cliente" class="modal-overlay">
       <div class="modal-content">
         <div class="flex justify-between items-center mb-4">
-          <h2>Nuevo Cliente</h2>
+          <h2 id="modal-cliente-title">Nuevo Cliente</h2>
           <button class="btn-icon" onclick="window.closeModal('modal-cliente')"><i class="ri-close-line"></i></button>
         </div>
         <div class="form-grid" style="grid-template-columns: 1fr;">
+          <input type="hidden" id="cl-id" value="">
           <div class="form-group">
             <label>Nombre Completo</label>
             <input type="text" id="cl-nombre" class="input-control" placeholder="Ej: Juan García">
+          </div>
+          <div class="form-group">
+            <label>DNI / Identificador</label>
+            <input type="text" id="cl-dni" class="input-control" placeholder="Ej: 30123456">
           </div>
           <div class="form-group">
             <label>Teléfono</label>
@@ -113,7 +160,16 @@ export function renderClientes(container) {
   `;
 
   // Suscribirse al botón global (header móvil) + botón desktop
-  const handleOpenModal = () => window.openModal('modal-cliente');
+  const handleOpenModal = () => {
+    document.getElementById('cl-id').value = '';
+    document.getElementById('cl-nombre').value = '';
+    document.getElementById('cl-dni').value = '';
+    document.getElementById('cl-tel').value = '';
+    document.getElementById('cl-email').value = '';
+    document.getElementById('cl-notas').value = '';
+    document.getElementById('modal-cliente-title').innerText = 'Nuevo Cliente';
+    window.openModal('modal-cliente');
+  };
   
   if (document.getElementById('btn-add-cliente')) {
     document.getElementById('btn-add-cliente').addEventListener('click', handleOpenModal);
@@ -125,6 +181,13 @@ export function renderClientes(container) {
   };
   window.addEventListener('global-add-click', globalListener);
 
+  window.addEventListener('re-render-clientes', () => {
+    const listContainer = document.getElementById('clientes-list-container');
+    if (listContainer) {
+       listContainer.innerHTML = renderList(document.getElementById('search-clientes')?.value || '');
+    }
+  });
+
   // Búsqueda
   document.getElementById('search-clientes').addEventListener('input', (e) => {
     document.getElementById('clientes-list-container').innerHTML = renderList(e.target.value);
@@ -132,19 +195,32 @@ export function renderClientes(container) {
 
   // Guardar
   document.getElementById('btn-save-cliente').addEventListener('click', () => {
+    const hiddenId = document.getElementById('cl-id').value;
     const nombre = document.getElementById('cl-nombre').value.trim();
     if (!nombre) {
       alert('El nombre es obligatorio');
       return;
     }
     
-    store.clientes.push({
-      id: uid(),
-      nombre,
-      tel: document.getElementById('cl-tel').value.trim(),
-      email: document.getElementById('cl-email').value.trim(),
-      notas: document.getElementById('cl-notas').value.trim()
-    });
+    if (hiddenId) {
+       const c = store.clientes.find(x => x.id === hiddenId);
+       if (c) {
+          c.nombre = nombre;
+          c.dni = document.getElementById('cl-dni').value.trim();
+          c.tel = document.getElementById('cl-tel').value.trim();
+          c.email = document.getElementById('cl-email').value.trim();
+          c.notas = document.getElementById('cl-notas').value.trim();
+       }
+    } else {
+       store.clientes.push({
+         id: uid(),
+         nombre,
+         dni: document.getElementById('cl-dni').value.trim(),
+         tel: document.getElementById('cl-tel').value.trim(),
+         email: document.getElementById('cl-email').value.trim(),
+         notas: document.getElementById('cl-notas').value.trim()
+       });
+    }
     
     saveStore();
     window.closeModal('modal-cliente');
