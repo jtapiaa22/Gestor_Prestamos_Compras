@@ -1,4 +1,4 @@
-import { getStore, saveStore } from '../state/store.js';
+import { getStore, saveStore, addCompra, updateCompra, removeCompra } from '../state/store.js';
 import { uid, formatMoney, isVencida, isPronto, addCuotasVencimiento, formatFecha, formatCurrencyInput, parseCurrencyInput } from '../utils/helpers.js';
 
 function getNombreCliente(store, id) {
@@ -7,21 +7,19 @@ function getNombreCliente(store, id) {
 }
 
 // Para que el scope global funcione en los botones renderizados como string html
-window.__toggleCuotaCompra = function (cid, idx) {
+window.__toggleCuotaCompra = async function (cid, idx) {
   const store = getStore();
   const c = store.compras.find(x => x.id === cid);
   if (c) {
     c.cuotas[idx].pagada = !c.cuotas[idx].pagada;
-    saveStore();
+    await updateCompra(c);
     window.__verDetalleCompra(cid); // re-render modal
   }
 };
 
-window.__eliminarCompra = function (id) {
+window.__eliminarCompra = async function (id) {
   if (confirm('¿Estás seguro de eliminar esta compra?')) {
-    const store = getStore();
-    store.compras = store.compras.filter(x => x.id !== id);
-    saveStore();
+    await removeCompra(id);
     const event = new Event('re-render-compras');
     window.dispatchEvent(event);
   }
@@ -230,7 +228,7 @@ export function renderCompras(container) {
     if (listContainer) listContainer.innerHTML = renderHistorial();
   });
 
-  document.getElementById('btn-save-compra').addEventListener('click', () => {
+  document.getElementById('btn-save-compra').addEventListener('click', async () => {
     const cid = document.getElementById('c-cliente').value;
     const desc = document.getElementById('c-desc').value.trim();
     const costo = parseCurrencyInput(document.getElementById('c-costo').value);
@@ -246,7 +244,7 @@ export function renderCompras(container) {
 
     const cuotas = addCuotasVencimiento(fecha1, n);
 
-    store.compras.push({
+    await addCompra({
       id: uid(),
       clienteId: cid,
       desc,
@@ -260,7 +258,6 @@ export function renderCompras(container) {
       fecha: new Date().toISOString().split('T')[0]
     });
 
-    saveStore();
     window.closeModal('modal-new-compra');
     document.getElementById('c-desc').value = '';
     document.getElementById('c-costo').value = '';

@@ -1,4 +1,4 @@
-import { getStore, saveStore } from '../state/store.js';
+import { getStore, saveStore, updatePrestamo, removePrestamo, addPrestamo } from '../state/store.js';
 import { uid, formatMoney, isVencida, isPronto, addCuotasVencimiento, formatFecha, getTasaInterpolada, formatCurrencyInput, parseCurrencyInput } from '../utils/helpers.js';
 
 function getNombreCliente(store, id) {
@@ -6,21 +6,19 @@ function getNombreCliente(store, id) {
   return c ? c.nombre : 'Desconocido';
 }
 
-window.__toggleCuotaPrestamo = function(pid, idx) {
+window.__toggleCuotaPrestamo = async function(pid, idx) {
   const store = getStore();
   const p = store.prestamos.find(x => x.id === pid);
   if (p) {
     p.cuotas[idx].pagada = !p.cuotas[idx].pagada;
-    saveStore();
+    await updatePrestamo(p);
     window.__verDetallePrestamo(pid);
   }
 };
 
-window.__eliminarPrestamo = function(id) {
+window.__eliminarPrestamo = async function(id) {
   if (confirm('¿Estás seguro de eliminar este préstamo?')) {
-    const store = getStore();
-    store.prestamos = store.prestamos.filter(x => x.id !== id);
-    saveStore();
+    await removePrestamo(id);
     const event = new Event('re-render-prestamos');
     window.dispatchEvent(event);
   }
@@ -236,7 +234,7 @@ export function renderPrestamos(container) {
     if (listContainer) listContainer.innerHTML = renderHistorial();
   });
 
-  document.getElementById('btn-save-prestamo').addEventListener('click', () => {
+  document.getElementById('btn-save-prestamo').addEventListener('click', async () => {
     const cid = document.getElementById('p-cliente').value;
     const m = parseCurrencyInput(document.getElementById('p-monto').value);
     const n = parseInt(document.getElementById('p-ncuotas').value) || 1;
@@ -255,7 +253,7 @@ export function renderPrestamos(container) {
     const montoCuota = totalDev / n;
     const cuotas = addCuotasVencimiento(fecha1, n);
     
-    store.prestamos.push({
+    await addPrestamo({
       id: uid(),
       clienteId: cid,
       monto: m,
@@ -268,7 +266,6 @@ export function renderPrestamos(container) {
       fecha: new Date().toISOString().split('T')[0]
     });
     
-    saveStore();
     window.closeModal('modal-new-prestamo');
     document.getElementById('p-monto').value = '';
     document.getElementById('p-ncuotas').value = '1';

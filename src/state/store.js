@@ -28,33 +28,45 @@ export async function initStore() {
       store = { ...store, ...parsed, tasas: { ...defaultState.tasas, ...(parsed?.tasas || {}) } };
     }
 
-    // 2. Cargar Clientes desde su propia tabla
-    const { data: clientesData, error: clientesError } = await supabase
-      .from('fincontrol_clientes')
-      .select('*');
+    // 2. Cargar Clientes, Prestamos y Compras desde tablas relacionales
+    const { data: clientesData, error: clientesError } = await supabase.from('fincontrol_clientes').select('*');
+    const { data: prestamosData } = await supabase.from('fincontrol_prestamos').select('*');
+    const { data: comprasData } = await supabase.from('fincontrol_compras').select('*');
       
     if (clientesError) {
-      console.warn("La tabla fincontrol_clientes no existe o falló, asegúrate de haberla creado en Supabase.");
+      console.warn("Las tablas relacionales fallaron. Revisa el esquema SQL.");
     }
 
     let necesitaMigracion = false;
     
-    // Auto-Migración: Si tenemos clientes en el viejo formato (adentro del payload de fincontrol_data)
-    // y la nueva tabla está vacía, significando que es la primera vez que inicia esto:
+    // Auto-Migración Clientes
     if (store.clientes && store.clientes.length > 0 && (!clientesData || clientesData.length === 0)) {
-      console.log('Migrando lista de clientes a su propia tabla relacional...');
-      // Insertar los clientes viejos en la nueva tabla de golpe
+      console.log('Migrando clientes...');
       await supabase.from('fincontrol_clientes').insert(store.clientes);
       necesitaMigracion = true;
-      // Una vez insertados, los mantenemos en el store memory y listo.
-    } 
-    // Si la nueva tabla ya tiene clientes (modo normal), sobreescribimos cualquier basurita del JSON con la versión oficial
-    else if (clientesData && clientesData.length > 0) {
+    } else if (clientesData && clientesData.length > 0) {
       store.clientes = clientesData;
+    }
+    
+    // Auto-Migración Prestamos
+    if (store.prestamos && store.prestamos.length > 0 && (!prestamosData || prestamosData.length === 0)) {
+      console.log('Migrando prestamos...');
+      await supabase.from('fincontrol_prestamos').insert(store.prestamos);
+      necesitaMigracion = true;
+    } else if (prestamosData && prestamosData.length > 0) {
+      store.prestamos = prestamosData;
+    }
+    
+    // Auto-Migración Compras
+    if (store.compras && store.compras.length > 0 && (!comprasData || comprasData.length === 0)) {
+      console.log('Migrando compras...');
+      await supabase.from('fincontrol_compras').insert(store.compras);
+      necesitaMigracion = true;
+    } else if (comprasData && comprasData.length > 0) {
+      store.compras = comprasData;
     }
 
     if (necesitaMigracion) {
-      // Guardar el payload quitando los clientes de adentro
       await saveStore();
     }
 
@@ -85,9 +97,11 @@ export function getStore() {
 
 export async function saveStore() {
   try {
-    // Para el guardado principal, ignoramos a los clientes porque ahora viven en su propia tabla
+    // Ignoramos datos relacionales del guardado config principal
     const payloadToSave = { ...store };
     delete payloadToSave.clientes;
+    delete payloadToSave.prestamos;
+    delete payloadToSave.compras;
 
     const { error } = await supabase
       .from('fincontrol_data')
@@ -152,6 +166,78 @@ export async function removeCliente(id) {
     console.error("Error borrando cliente", e);
     alert("Hubo un error eliminando el cliente online.");
   }
+}
+
+// ------------------------------------------------ //
+
+// ====== COMPRAS EXCLUSIVAS ====== //
+
+export async function addCompra(compra) {
+  store.compras.push(compra);
+  try {
+    const { error } = await supabase.from('fincontrol_compras').insert([compra]);
+    if (error) throw error;
+    localStorage.setItem('fincontrol', JSON.stringify(store));
+    notify();
+  } catch(e) { console.error("Error online", e); alert("Error guardando compra online: " + e.message); }
+}
+
+export async function updateCompra(compra) {
+  const index = store.compras.findIndex(c => c.id === compra.id);
+  if (index > -1) {
+    store.compras[index] = compra;
+    try {
+      const { error } = await supabase.from('fincontrol_compras').update(compra).eq('id', compra.id);
+      if (error) throw error;
+      localStorage.setItem('fincontrol', JSON.stringify(store));
+      notify();
+    } catch(e) { console.error("Error online", e); alert("Error editando compra online"); }
+  }
+}
+
+export async function removeCompra(id) {
+  store.compras = store.compras.filter(c => c.id !== id);
+  try {
+    const { error } = await supabase.from('fincontrol_compras').delete().eq('id', id);
+    if (error) throw error;
+    localStorage.setItem('fincontrol', JSON.stringify(store));
+    notify();
+  } catch(e) { console.error("Error online", e); alert("Error borrando compra online"); }
+}
+
+// ====== PRESTAMOS EXCLUSIVOS ====== //
+
+export async function addPrestamo(pres) {
+  store.prestamos.push(pres);
+  try {
+    const { error } = await supabase.from('fincontrol_prestamos').insert([pres]);
+    if (error) throw error;
+    localStorage.setItem('fincontrol', JSON.stringify(store));
+    notify();
+  } catch(e) { console.error("Error online", e); alert("Error guardando prestamo online: " + e.message); }
+}
+
+export async function updatePrestamo(pres) {
+  const index = store.prestamos.findIndex(p => p.id === pres.id);
+  if (index > -1) {
+    store.prestamos[index] = pres;
+    try {
+      const { error } = await supabase.from('fincontrol_prestamos').update(pres).eq('id', pres.id);
+      if (error) throw error;
+      localStorage.setItem('fincontrol', JSON.stringify(store));
+      notify();
+    } catch(e) { console.error("Error online", e); alert("Error editando prestamo online"); }
+  }
+}
+
+export async function removePrestamo(id) {
+  store.prestamos = store.prestamos.filter(p => p.id !== id);
+  try {
+    const { error } = await supabase.from('fincontrol_prestamos').delete().eq('id', id);
+    if (error) throw error;
+    localStorage.setItem('fincontrol', JSON.stringify(store));
+    notify();
+  } catch(e) { console.error("Error online", e); alert("Error borrando prestamo online"); }
 }
 
 // ------------------------------------------------ //
