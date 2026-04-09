@@ -99,6 +99,7 @@ export async function saveStore() {
     notify();
   } catch(e) {
     console.error('Error guardando config en Supabase.', e);
+    alert('Error al guardar en el servidor: ' + (e.message || JSON.stringify(e)));
     localStorage.setItem('fincontrol', JSON.stringify(store));
     notify();
   }
