@@ -1,0 +1,552 @@
+
+<style>
+:root{--c1:#1a1a2e;--c2:#16213e;--c3:#0f3460;--acc:#e8a317;--acc2:#f5c842;--ok:#2ecc71;--warn:#e74c3c;--muted:rgba(255,255,255,0.45);--border:rgba(255,255,255,0.1);--card:rgba(255,255,255,0.05);--rad:10px}
+*{box-sizing:border-box;margin:0;padding:0}
+body,#app{font-family:'Courier New',monospace;background:transparent;color:#eee;font-size:13px}
+#app{min-height:600px}
+.wrap{padding:1rem}
+nav{display:flex;gap:6px;margin-bottom:1.5rem;flex-wrap:wrap}
+.nav-btn{padding:7px 16px;border:1px solid var(--border);border-radius:20px;background:transparent;color:var(--muted);cursor:pointer;font-family:inherit;font-size:12px;transition:all .2s}
+.nav-btn.active{background:var(--acc);color:#1a1a2e;border-color:var(--acc);font-weight:700}
+.nav-btn:hover:not(.active){border-color:var(--acc);color:var(--acc)}
+.section{display:none}.section.active{display:block}
+h2{font-size:15px;font-weight:700;color:var(--acc);margin-bottom:1rem;letter-spacing:1px;text-transform:uppercase}
+h3{font-size:13px;font-weight:700;color:#ccc;margin-bottom:.75rem;letter-spacing:.5px}
+.cards-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-bottom:1.5rem}
+.stat-card{background:var(--card);border:1px solid var(--border);border-radius:var(--rad);padding:12px 14px}
+.stat-card .label{font-size:10px;color:var(--muted);letter-spacing:.5px;text-transform:uppercase;margin-bottom:4px}
+.stat-card .value{font-size:20px;font-weight:700;color:var(--acc)}
+.stat-card .value.ok{color:var(--ok)}
+.stat-card .value.warn{color:var(--warn)}
+.panel{background:var(--card);border:1px solid var(--border);border-radius:var(--rad);padding:14px;margin-bottom:1rem}
+.form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:8px;margin-bottom:10px}
+label{font-size:11px;color:var(--muted);display:block;margin-bottom:3px}
+input,select{width:100%;padding:7px 9px;background:rgba(255,255,255,0.07);border:1px solid var(--border);border-radius:6px;color:#eee;font-family:inherit;font-size:12px}
+input:focus,select:focus{outline:none;border-color:var(--acc)}
+select option{background:#1a1a2e}
+.btn{padding:7px 16px;border-radius:6px;border:none;cursor:pointer;font-family:inherit;font-size:12px;font-weight:700;transition:all .2s}
+.btn-acc{background:var(--acc);color:#1a1a2e}.btn-acc:hover{background:var(--acc2)}
+.btn-sm{padding:4px 10px;font-size:11px;border-radius:4px;border:none;cursor:pointer;font-family:inherit}
+.btn-danger{background:rgba(231,76,60,0.2);color:var(--warn);border:1px solid rgba(231,76,60,0.3)}.btn-danger:hover{background:rgba(231,76,60,0.4)}
+.btn-ok{background:rgba(46,204,113,0.15);color:var(--ok);border:1px solid rgba(46,204,113,0.3)}.btn-ok:hover{background:rgba(46,204,113,0.3)}
+.btn-info{background:rgba(52,152,219,0.15);color:#74b9ff;border:1px solid rgba(52,152,219,0.3)}
+table{width:100%;border-collapse:collapse;font-size:12px}
+th{text-align:left;padding:8px 10px;color:var(--muted);font-size:10px;letter-spacing:.5px;text-transform:uppercase;border-bottom:1px solid var(--border)}
+td{padding:8px 10px;border-bottom:1px solid rgba(255,255,255,0.04);vertical-align:middle}
+tr:hover td{background:rgba(255,255,255,0.03)}
+.badge{display:inline-block;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:700}
+.badge-ok{background:rgba(46,204,113,0.15);color:var(--ok)}
+.badge-warn{background:rgba(231,76,60,0.15);color:var(--warn)}
+.badge-pend{background:rgba(232,163,23,0.15);color:var(--acc)}
+.badge-par{background:rgba(116,185,255,0.15);color:#74b9ff}
+.profit{color:var(--ok);font-weight:700}
+.loss{color:var(--warn)}
+.cuota-row{display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid rgba(255,255,255,0.04)}
+.cuota-row:last-child{border:none}
+.cuota-num{width:24px;height:24px;border-radius:50%;background:var(--c3);display:inline-flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0}
+.modal-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.8);display:flex;align-items:center;justify-content:center;z-index:100;display:none}
+.modal{background:#1a1a2e;border:1px solid var(--border);border-radius:var(--rad);padding:20px;width:90%;max-width:500px;max-height:80vh;overflow-y:auto}
+.modal h3{color:var(--acc);margin-bottom:1rem}
+.modal-close{float:right;background:none;border:none;color:var(--muted);cursor:pointer;font-size:16px}
+.section-toggle{display:flex;gap:6px;margin-bottom:1rem}
+.toggle-btn{padding:5px 14px;border-radius:4px;border:1px solid var(--border);background:transparent;color:var(--muted);cursor:pointer;font-family:inherit;font-size:11px}
+.toggle-btn.on{background:rgba(232,163,23,0.15);border-color:var(--acc);color:var(--acc)}
+.empty{text-align:center;padding:2rem;color:var(--muted);font-size:12px}
+.tag-card{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:4px;font-size:10px;background:rgba(116,185,255,0.1);color:#74b9ff;border:1px solid rgba(116,185,255,0.2)}
+.progress{height:5px;background:rgba(255,255,255,0.1);border-radius:3px;margin-top:4px}
+.progress-bar{height:100%;border-radius:3px;background:var(--acc);transition:width .3s}
+.rates-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(100px,1fr));gap:8px}
+.rate-item{background:rgba(255,255,255,0.03);border:1px solid var(--border);border-radius:6px;padding:8px;text-align:center}
+.rate-item label{font-size:10px}
+.rate-item input{text-align:center;font-size:14px;font-weight:700;padding:4px}
+.divider{border:none;border-top:1px solid var(--border);margin:12px 0}
+.search-bar{width:100%;padding:8px 12px;background:rgba(255,255,255,0.05);border:1px solid var(--border);border-radius:6px;color:#eee;font-family:inherit;font-size:12px;margin-bottom:1rem}
+.search-bar:focus{outline:none;border-color:var(--acc)}
+.inline-flex{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.vencido{color:var(--warn)}
+.pago{color:var(--ok);text-decoration:line-through;opacity:.7}
+</style>
+
+<div id="app">
+<div class="wrap">
+
+<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem">
+  <div>
+    <div style="font-size:18px;font-weight:700;color:var(--acc);letter-spacing:2px">FINCONTROL</div>
+    <div style="font-size:10px;color:var(--muted);letter-spacing:1px">GESTIÓN DE PRÉSTAMOS Y COMPRAS</div>
+  </div>
+  <button class="btn btn-acc" onclick="openClienteModal()">+ Cliente</button>
+</div>
+
+<nav>
+  <button class="nav-btn active" onclick="switchTab('dashboard')">Dashboard</button>
+  <button class="nav-btn" onclick="switchTab('clientes')">Clientes</button>
+  <button class="nav-btn" onclick="switchTab('compras')">Compras</button>
+  <button class="nav-btn" onclick="switchTab('prestamos')">Préstamos</button>
+  <button class="nav-btn" onclick="switchTab('config')">Configuración</button>
+</nav>
+
+<!-- DASHBOARD -->
+<div id="tab-dashboard" class="section active">
+  <div id="dash-cards" class="cards-row"></div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem">
+    <div class="panel">
+      <h3>Compras recientes</h3>
+      <div id="dash-compras"></div>
+    </div>
+    <div class="panel">
+      <h3>Préstamos activos</h3>
+      <div id="dash-prestamos"></div>
+    </div>
+  </div>
+  <div class="panel">
+    <h3>Cuotas que vencen pronto</h3>
+    <div id="dash-vencimientos"></div>
+  </div>
+</div>
+
+<!-- CLIENTES -->
+<div id="tab-clientes" class="section">
+  <input class="search-bar" placeholder="Buscar cliente..." oninput="renderClientes(this.value)">
+  <div id="lista-clientes"></div>
+</div>
+
+<!-- COMPRAS -->
+<div id="tab-compras" class="section">
+  <div class="panel">
+    <h3>Nueva compra</h3>
+    <div class="form-grid">
+      <div><label>Cliente</label><select id="c-cliente"></select></div>
+      <div><label>Descripción del producto</label><input id="c-desc" placeholder="ej: TV Samsung 55'"></div>
+      <div><label>Precio de costo ($)</label><input id="c-costo" type="number" placeholder="0"></div>
+      <div><label>Tarjeta usada</label><select id="c-tarjeta"></select></div>
+      <div><label>Cant. de cuotas</label><input id="c-ncuotas" type="number" min="1" max="36" value="1" oninput="calcCompra()"></div>
+      <div><label>Monto por cuota ($)</label><input id="c-montocuota" type="number" placeholder="0" oninput="calcCompra()"></div>
+      <div><label>Fecha 1er vencimiento</label><input id="c-fecha1" type="date"></div>
+    </div>
+    <div id="c-preview" style="margin:8px 0"></div>
+    <button class="btn btn-acc" onclick="guardarCompra()">Guardar compra</button>
+  </div>
+  <hr class="divider">
+  <h2>Historial de compras</h2>
+  <div id="lista-compras"></div>
+</div>
+
+<!-- PRÉSTAMOS -->
+<div id="tab-prestamos" class="section">
+  <div class="panel">
+    <h3>Nuevo préstamo</h3>
+    <div class="form-grid">
+      <div><label>Cliente</label><select id="p-cliente"></select></div>
+      <div><label>Monto prestado ($)</label><input id="p-monto" type="number" placeholder="0" oninput="calcPrestamo()"></div>
+      <div><label>Cant. de cuotas</label><select id="p-ncuotas" onchange="calcPrestamo()">
+        <option value="1">1 cuota</option><option value="2">2 cuotas</option><option value="3">3 cuotas</option>
+        <option value="6">6 cuotas</option><option value="9">9 cuotas</option><option value="12">12 cuotas</option>
+        <option value="18">18 cuotas</option><option value="24">24 cuotas</option>
+      </select></div>
+      <div><label>Fecha 1er vencimiento</label><input id="p-fecha1" type="date"></div>
+    </div>
+    <div id="p-preview" style="margin:8px 0"></div>
+    <button class="btn btn-acc" onclick="guardarPrestamo()">Guardar préstamo</button>
+  </div>
+  <hr class="divider">
+  <h2>Préstamos activos</h2>
+  <div id="lista-prestamos"></div>
+</div>
+
+<!-- CONFIGURACIÓN -->
+<div id="tab-config" class="section">
+  <div class="panel">
+    <h3>Tasas de interés para préstamos (%)</h3>
+    <p style="font-size:11px;color:var(--muted);margin-bottom:12px">Porcentaje de interés total según cantidad de cuotas</p>
+    <div id="rates-container" class="rates-grid"></div>
+    <button class="btn btn-acc" style="margin-top:12px" onclick="saveRates()">Guardar tasas</button>
+  </div>
+  <hr class="divider">
+  <div class="panel">
+    <h3>Tarjetas de crédito</h3>
+    <div class="inline-flex" style="margin-bottom:10px">
+      <input id="new-tarjeta" placeholder="Nombre de tarjeta" style="width:200px">
+      <button class="btn btn-acc" onclick="addTarjeta()">Agregar</button>
+    </div>
+    <div id="lista-tarjetas"></div>
+  </div>
+</div>
+
+</div><!-- wrap -->
+</div><!-- app -->
+
+<!-- MODAL CLIENTE -->
+<div id="modal-cliente" style="position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.85);display:none;align-items:center;justify-content:center;z-index:200">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('modal-cliente')">✕</button>
+    <h3>Nuevo cliente</h3>
+    <div class="form-grid">
+      <div><label>Nombre</label><input id="cl-nombre" placeholder="Juan García"></div>
+      <div><label>Teléfono</label><input id="cl-tel" placeholder="(xxx) xxx-xxxx"></div>
+      <div><label>Email</label><input id="cl-email" placeholder="juan@email.com"></div>
+      <div><label>Notas</label><input id="cl-notas" placeholder="Observaciones..."></div>
+    </div>
+    <button class="btn btn-acc" onclick="guardarCliente()">Guardar cliente</button>
+  </div>
+</div>
+
+<!-- MODAL DETALLE COMPRA -->
+<div id="modal-compra" style="position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.85);display:none;align-items:center;justify-content:center;z-index:200">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('modal-compra')">✕</button>
+    <div id="modal-compra-content"></div>
+  </div>
+</div>
+
+<!-- MODAL DETALLE PRESTAMO -->
+<div id="modal-prestamo" style="position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.85);display:none;align-items:center;justify-content:center;z-index:200">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('modal-prestamo')">✕</button>
+    <div id="modal-prestamo-content"></div>
+  </div>
+</div>
+
+<script>
+let state = {
+  clientes: [],
+  compras: [],
+  prestamos: [],
+  tarjetas: ['Visa Santander','Mastercard BBVA','Naranja X','MODO'],
+  tasas: {1:0, 2:10, 3:20, 6:35, 9:50, 12:65, 18:90, 24:120}
+};
+
+function save(){try{localStorage.setItem('fincontrol',JSON.stringify(state))}catch(e){}}
+function load(){try{const d=localStorage.getItem('fincontrol');if(d){const p=JSON.parse(d);if(p.clientes)state.clientes=p.clientes;if(p.compras)state.compras=p.compras;if(p.prestamos)state.prestamos=p.prestamos;if(p.tarjetas)state.tarjetas=p.tarjetas;if(p.tasas)state.tasas={...state.tasas,...p.tasas}}}catch(e){}}
+
+function switchTab(t){
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('tab-'+t).classList.add('active');
+  event.target.classList.add('active');
+  if(t==='clientes')renderClientes();
+  if(t==='compras'){fillSelects();renderCompras();}
+  if(t==='prestamos'){fillSelects();renderPrestamos();}
+  if(t==='dashboard')renderDashboard();
+  if(t==='config'){renderRates();renderTarjetas();}
+}
+
+function fillSelects(){
+  ['c-cliente','p-cliente'].forEach(id=>{
+    const s=document.getElementById(id);if(!s)return;
+    s.innerHTML=state.clientes.map(c=>`<option value="${c.id}">${c.nombre}</option>`).join('');
+    if(!state.clientes.length)s.innerHTML='<option>Sin clientes</option>';
+  });
+  const t=document.getElementById('c-tarjeta');
+  if(t)t.innerHTML=state.tarjetas.map(x=>`<option>${x}</option>`).join('');
+}
+
+function uid(){return Date.now().toString(36)+Math.random().toString(36).substr(2,5)}
+
+function openClienteModal(){document.getElementById('modal-cliente').style.display='flex'}
+function closeModal(id){document.getElementById(id).style.display='none'}
+
+function guardarCliente(){
+  const n=document.getElementById('cl-nombre').value.trim();
+  if(!n){alert('Ingresá el nombre');return;}
+  state.clientes.push({id:uid(),nombre:n,tel:document.getElementById('cl-tel').value,email:document.getElementById('cl-email').value,notas:document.getElementById('cl-notas').value});
+  save();closeModal('modal-cliente');
+  ['cl-nombre','cl-tel','cl-email','cl-notas'].forEach(i=>document.getElementById(i).value='');
+  fillSelects();renderClientes();renderDashboard();
+}
+
+function addCuotasVencimiento(fecha1,n){
+  const cuotas=[];
+  const base=new Date(fecha1+'T12:00:00');
+  for(let i=0;i<n;i++){
+    const d=new Date(base);d.setMonth(d.getMonth()+i);
+    cuotas.push({num:i+1,vence:d.toISOString().split('T')[0],pagada:false});
+  }
+  return cuotas;
+}
+
+function calcCompra(){
+  const costo=parseFloat(document.getElementById('c-costo').value)||0;
+  const n=parseInt(document.getElementById('c-ncuotas').value)||1;
+  const mc=parseFloat(document.getElementById('c-montocuota').value)||0;
+  const total=mc*n;
+  const gan=total-costo;
+  const pct=costo>0?((gan/costo)*100).toFixed(1):0;
+  const el=document.getElementById('c-preview');
+  if(!costo&&!mc){el.innerHTML='';return;}
+  el.innerHTML=`<div style="background:rgba(232,163,23,0.08);border:1px solid rgba(232,163,23,0.2);border-radius:6px;padding:8px 12px;font-size:12px;display:flex;gap:16px;flex-wrap:wrap">
+    <span>Total cobrado: <b style="color:var(--acc)">$${total.toFixed(2)}</b></span>
+    <span>Costo: <b>$${costo.toFixed(2)}</b></span>
+    <span>Ganancia: <b class="${gan>=0?'profit':'loss'}">$${gan.toFixed(2)} (${pct}%)</b></span>
+  </div>`;
+}
+
+function guardarCompra(){
+  const cid=document.getElementById('c-cliente').value;
+  const desc=document.getElementById('c-desc').value.trim();
+  const costo=parseFloat(document.getElementById('c-costo').value)||0;
+  const n=parseInt(document.getElementById('c-ncuotas').value)||1;
+  const mc=parseFloat(document.getElementById('c-montocuota').value)||0;
+  const fecha1=document.getElementById('c-fecha1').value;
+  const tarjeta=document.getElementById('c-tarjeta').value;
+  if(!desc||!costo||!mc||!fecha1){alert('Completá todos los campos');return;}
+  const cuotas=addCuotasVencimiento(fecha1,n);
+  state.compras.push({id:uid(),clienteId:cid,desc,costo,ncuotas:n,montoCuota:mc,total:mc*n,ganancia:mc*n-costo,tarjeta,cuotas,fecha:new Date().toISOString().split('T')[0]});
+  save();renderCompras();renderDashboard();
+  ['c-desc','c-costo','c-ncuotas','c-montocuota','c-fecha1'].forEach(i=>{const el=document.getElementById(i);if(el)el.value=i==='c-ncuotas'?'1':''});
+  document.getElementById('c-preview').innerHTML='';
+}
+
+function calcPrestamo(){
+  const m=parseFloat(document.getElementById('p-monto').value)||0;
+  const n=parseInt(document.getElementById('p-ncuotas').value)||1;
+  const tasas=state.tasas;
+  const tasa=tasas[n]!==undefined?tasas[n]:getTasaInterpolada(n);
+  const totalDev=m*(1+tasa/100);
+  const montoCuota=totalDev/n;
+  const gan=totalDev-m;
+  const el=document.getElementById('p-preview');
+  if(!m){el.innerHTML='';return;}
+  el.innerHTML=`<div style="background:rgba(46,204,113,0.07);border:1px solid rgba(46,204,113,0.2);border-radius:6px;padding:8px 12px;font-size:12px;display:flex;gap:16px;flex-wrap:wrap">
+    <span>Tasa: <b style="color:var(--acc)">${tasa}%</b></span>
+    <span>Total a devolver: <b style="color:var(--acc)">$${totalDev.toFixed(2)}</b></span>
+    <span>Por cuota: <b>$${montoCuota.toFixed(2)}</b></span>
+    <span>Ganancia: <b class="profit">$${gan.toFixed(2)}</b></span>
+  </div>`;
+}
+
+function getTasaInterpolada(n){
+  const keys=Object.keys(state.tasas).map(Number).sort((a,b)=>a-b);
+  for(let i=0;i<keys.length-1;i++){if(n>keys[i]&&n<keys[i+1]){const t=state.tasas[keys[i]];const t2=state.tasas[keys[i+1]];return Math.round(t+(t2-t)*(n-keys[i])/(keys[i+1]-keys[i]));}}
+  return state.tasas[keys[keys.length-1]]||0;
+}
+
+function guardarPrestamo(){
+  const cid=document.getElementById('p-cliente').value;
+  const m=parseFloat(document.getElementById('p-monto').value)||0;
+  const n=parseInt(document.getElementById('p-ncuotas').value)||1;
+  const fecha1=document.getElementById('p-fecha1').value;
+  if(!m||!fecha1){alert('Completá todos los campos');return;}
+  const tasa=state.tasas[n]!==undefined?state.tasas[n]:getTasaInterpolada(n);
+  const totalDev=m*(1+tasa/100);
+  const montoCuota=totalDev/n;
+  const cuotas=addCuotasVencimiento(fecha1,n);
+  state.prestamos.push({id:uid(),clienteId:cid,monto:m,ncuotas:n,tasa,totalDevolver:totalDev,montoCuota,ganancia:totalDev-m,cuotas,fecha:new Date().toISOString().split('T')[0]});
+  save();renderPrestamos();renderDashboard();
+  document.getElementById('p-monto').value='';document.getElementById('p-fecha1').value='';
+  document.getElementById('p-preview').innerHTML='';
+}
+
+function getNombreCliente(id){const c=state.clientes.find(x=>x.id===id);return c?c.nombre:'Desconocido';}
+
+function isVencida(fecha){return new Date(fecha+'T12:00:00')<new Date();}
+function isPronto(fecha){const d=new Date(fecha+'T12:00:00');const hoy=new Date();const diff=(d-hoy)/(1000*60*60*24);return diff>=0&&diff<=7;}
+
+function renderClientes(q=''){
+  const list=state.clientes.filter(c=>!q||c.nombre.toLowerCase().includes(q.toLowerCase()));
+  const el=document.getElementById('lista-clientes');
+  if(!list.length){el.innerHTML='<div class="empty">No hay clientes. Usá el botón "+ Cliente" para agregar.</div>';return;}
+  el.innerHTML=`<table><thead><tr><th>Nombre</th><th>Teléfono</th><th>Compras</th><th>Préstamos</th><th>Pendiente</th></tr></thead><tbody>
+  ${list.map(c=>{
+    const comp=state.compras.filter(x=>x.clienteId===c.id);
+    const pres=state.prestamos.filter(x=>x.clienteId===c.id);
+    const pend=pres.reduce((a,p)=>a+p.cuotas.filter(cu=>!cu.pagada).length*p.montoCuota,0)+comp.reduce((a,x)=>a+x.cuotas.filter(cu=>!cu.pagada).length*x.montoCuota,0);
+    return`<tr><td><b>${c.nombre}</b>${c.notas?`<br><span style="font-size:10px;color:var(--muted)">${c.notas}</span>`:''}</td><td style="color:var(--muted)">${c.tel||'—'}</td><td>${comp.length}</td><td>${pres.length}</td><td style="color:var(--acc);font-weight:700">${pend>0?'$'+pend.toFixed(2):'—'}</td></tr>`;
+  }).join('')}</tbody></table>`;
+}
+
+function renderCompras(q=''){
+  const el=document.getElementById('lista-compras');
+  if(!state.compras.length){el.innerHTML='<div class="empty">No hay compras registradas.</div>';return;}
+  el.innerHTML=state.compras.map(c=>{
+    const pagadas=c.cuotas.filter(x=>x.pagada).length;
+    const pct=Math.round((pagadas/c.ncuotas)*100);
+    const venc=c.cuotas.filter(x=>!x.pagada&&isVencida(x.vence)).length;
+    return`<div class="panel" style="margin-bottom:10px">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:8px">
+        <div>
+          <b style="font-size:13px">${c.desc}</b>
+          <span style="font-size:11px;color:var(--muted);margin-left:8px">${getNombreCliente(c.clienteId)}</span>
+          <span class="tag-card" style="margin-left:8px">${c.tarjeta}</span>
+          ${venc>0?`<span class="badge badge-warn" style="margin-left:4px">${venc} vencida${venc>1?'s':''}</span>`:''}
+        </div>
+        <div style="display:flex;gap:6px">
+          <button class="btn-sm btn-info" onclick="verDetalleCompra('${c.id}')">Ver cuotas</button>
+          <button class="btn-sm btn-danger" onclick="eliminarCompra('${c.id}')">✕</button>
+        </div>
+      </div>
+      <div style="display:flex;gap:16px;margin-top:8px;flex-wrap:wrap;font-size:12px">
+        <span>Costo: <b>$${c.costo.toFixed(2)}</b></span>
+        <span>Total: <b style="color:var(--acc)">$${c.total.toFixed(2)}</b></span>
+        <span>Ganancia: <b class="${c.ganancia>=0?'profit':'loss'}">$${c.ganancia.toFixed(2)}</b></span>
+        <span style="color:var(--muted)">${pagadas}/${c.ncuotas} cuotas • ${pct}%</span>
+      </div>
+      <div class="progress"><div class="progress-bar" style="width:${pct}%;background:${pct===100?'var(--ok)':'var(--acc)'}"></div></div>
+    </div>`;
+  }).join('');
+}
+
+function verDetalleCompra(id){
+  const c=state.compras.find(x=>x.id===id);
+  if(!c)return;
+  const el=document.getElementById('modal-compra-content');
+  el.innerHTML=`<h3>${c.desc}</h3>
+  <div style="font-size:12px;color:var(--muted);margin-bottom:12px">${getNombreCliente(c.clienteId)} • ${c.tarjeta}</div>
+  <div style="font-size:12px;display:flex;gap:16px;flex-wrap:wrap;margin-bottom:14px">
+    <span>Costo: <b>$${c.costo.toFixed(2)}</b></span>
+    <span>Por cuota: <b style="color:var(--acc)">$${c.montoCuota.toFixed(2)}</b></span>
+    <span>Ganancia total: <b class="profit">$${c.ganancia.toFixed(2)}</b></span>
+  </div>
+  <div>${c.cuotas.map(cu=>{
+    const ven=isVencida(cu.vence)&&!cu.pagada;
+    const pronto=isPronto(cu.vence)&&!cu.pagada;
+    return`<div class="cuota-row">
+      <span class="cuota-num" style="background:${cu.pagada?'var(--ok)':ven?'var(--warn)':'var(--c3)'};">${cu.num}</span>
+      <span style="flex:1;${cu.pagada?'color:var(--muted);text-decoration:line-through':ven?'color:var(--warn)':pronto?'color:var(--acc)':''}">${formatFecha(cu.vence)}</span>
+      <span style="color:var(--acc);min-width:70px;text-align:right">$${c.montoCuota.toFixed(2)}</span>
+      <span>${cu.pagada?`<span class="badge badge-ok">Pagada</span>`:ven?`<span class="badge badge-warn">Vencida</span>`:pronto?`<span class="badge badge-pend">Pronto</span>`:''}</span>
+      <button class="btn-sm ${cu.pagada?'btn-danger':'btn-ok'}" onclick="toggleCuotaCompra('${id}',${cu.num-1});verDetalleCompra('${id}')">${cu.pagada?'Desmarcar':'Pagar'}</button>
+    </div>`;
+  }).join('')}</div>`;
+  document.getElementById('modal-compra').style.display='flex';
+}
+
+function toggleCuotaCompra(cid,idx){
+  const c=state.compras.find(x=>x.id===cid);
+  if(c){c.cuotas[idx].pagada=!c.cuotas[idx].pagada;save();renderCompras();renderDashboard();}
+}
+
+function eliminarCompra(id){if(confirm('¿Eliminar esta compra?')){state.compras=state.compras.filter(x=>x.id!==id);save();renderCompras();renderDashboard();}}
+
+function renderPrestamos(){
+  const el=document.getElementById('lista-prestamos');
+  if(!state.prestamos.length){el.innerHTML='<div class="empty">No hay préstamos registrados.</div>';return;}
+  el.innerHTML=state.prestamos.map(p=>{
+    const pagadas=p.cuotas.filter(x=>x.pagada).length;
+    const pct=Math.round((pagadas/p.ncuotas)*100);
+    const venc=p.cuotas.filter(x=>!x.pagada&&isVencida(x.vence)).length;
+    const estado=pct===100?'badge-ok':venc>0?'badge-warn':'badge-par';
+    const estadoLabel=pct===100?'Saldado':venc>0?`${venc} vencida${venc>1?'s':''}`:'Al día';
+    return`<div class="panel" style="margin-bottom:10px">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:8px">
+        <div>
+          <b style="font-size:13px">${getNombreCliente(p.clienteId)}</b>
+          <span class="badge ${estado}" style="margin-left:8px">${estadoLabel}</span>
+        </div>
+        <div style="display:flex;gap:6px">
+          <button class="btn-sm btn-info" onclick="verDetallePrestamo('${p.id}')">Ver cuotas</button>
+          <button class="btn-sm btn-danger" onclick="eliminarPrestamo('${p.id}')">✕</button>
+        </div>
+      </div>
+      <div style="display:flex;gap:16px;margin-top:8px;flex-wrap:wrap;font-size:12px">
+        <span>Prestado: <b>$${p.monto.toFixed(2)}</b></span>
+        <span>Tasa: <b style="color:var(--acc)">${p.tasa}%</b></span>
+        <span>Total: <b style="color:var(--acc)">$${p.totalDevolver.toFixed(2)}</b></span>
+        <span>Por cuota: <b>$${p.montoCuota.toFixed(2)}</b></span>
+        <span>Ganancia: <b class="profit">$${p.ganancia.toFixed(2)}</b></span>
+        <span style="color:var(--muted)">${pagadas}/${p.ncuotas} cuotas</span>
+      </div>
+      <div class="progress"><div class="progress-bar" style="width:${pct}%;background:${pct===100?'var(--ok)':'var(--acc)'}"></div></div>
+    </div>`;
+  }).join('');
+}
+
+function verDetallePrestamo(id){
+  const p=state.prestamos.find(x=>x.id===id);
+  if(!p)return;
+  const el=document.getElementById('modal-prestamo-content');
+  el.innerHTML=`<h3>Préstamo — ${getNombreCliente(p.clienteId)}</h3>
+  <div style="font-size:12px;display:flex;gap:16px;flex-wrap:wrap;margin-bottom:14px">
+    <span>Capital: <b>$${p.monto.toFixed(2)}</b></span>
+    <span>Tasa: <b style="color:var(--acc)">${p.tasa}%</b></span>
+    <span>Total a devolver: <b style="color:var(--acc)">$${p.totalDevolver.toFixed(2)}</b></span>
+    <span>Ganancia: <b class="profit">$${p.ganancia.toFixed(2)}</b></span>
+  </div>
+  <div>${p.cuotas.map(cu=>{
+    const ven=isVencida(cu.vence)&&!cu.pagada;
+    const pronto=isPronto(cu.vence)&&!cu.pagada;
+    return`<div class="cuota-row">
+      <span class="cuota-num" style="background:${cu.pagada?'var(--ok)':ven?'var(--warn)':'var(--c3)'};">${cu.num}</span>
+      <span style="flex:1;${cu.pagada?'color:var(--muted);text-decoration:line-through':ven?'color:var(--warn)':pronto?'color:var(--acc)':''}">${formatFecha(cu.vence)}</span>
+      <span style="color:var(--acc);min-width:70px;text-align:right">$${p.montoCuota.toFixed(2)}</span>
+      <span>${cu.pagada?`<span class="badge badge-ok">Pagada</span>`:ven?`<span class="badge badge-warn">Vencida</span>`:pronto?`<span class="badge badge-pend">Pronto</span>`:''}</span>
+      <button class="btn-sm ${cu.pagada?'btn-danger':'btn-ok'}" onclick="toggleCuotaPrestamo('${id}',${cu.num-1});verDetallePrestamo('${id}')">${cu.pagada?'Desmarcar':'Pagar'}</button>
+    </div>`;
+  }).join('')}</div>`;
+  document.getElementById('modal-prestamo').style.display='flex';
+}
+
+function toggleCuotaPrestamo(pid,idx){
+  const p=state.prestamos.find(x=>x.id===pid);
+  if(p){p.cuotas[idx].pagada=!p.cuotas[idx].pagada;save();renderPrestamos();renderDashboard();}
+}
+
+function eliminarPrestamo(id){if(confirm('¿Eliminar este préstamo?')){state.prestamos=state.prestamos.filter(x=>x.id!==id);save();renderPrestamos();renderDashboard();}}
+
+function formatFecha(f){
+  const [y,m,d]=f.split('-');
+  const meses=['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+  return`${d} ${meses[parseInt(m)-1]} ${y}`;
+}
+
+function renderRates(){
+  const el=document.getElementById('rates-container');
+  const cuotas=[1,2,3,6,9,12,18,24];
+  el.innerHTML=cuotas.map(n=>`
+    <div class="rate-item">
+      <label>${n} cuota${n>1?'s':''}</label>
+      <input type="number" id="rate-${n}" value="${state.tasas[n]||0}" min="0" max="999" step="0.5">
+      <div style="font-size:9px;color:var(--muted);margin-top:3px">%</div>
+    </div>`).join('');
+}
+
+function saveRates(){
+  [1,2,3,6,9,12,18,24].forEach(n=>{const v=parseFloat(document.getElementById('rate-'+n).value)||0;state.tasas[n]=v;});
+  save();alert('Tasas guardadas.');
+}
+
+function renderTarjetas(){
+  const el=document.getElementById('lista-tarjetas');
+  el.innerHTML=`<div style="display:flex;flex-wrap:wrap;gap:6px">${state.tarjetas.map((t,i)=>`
+    <div class="tag-card">${t} <button onclick="eliminarTarjeta(${i})" style="background:none;border:none;color:var(--warn);cursor:pointer;font-size:11px;padding:0 2px">✕</button></div>`).join('')}</div>`;
+}
+
+function addTarjeta(){const v=document.getElementById('new-tarjeta').value.trim();if(!v)return;state.tarjetas.push(v);save();document.getElementById('new-tarjeta').value='';renderTarjetas();fillSelects();}
+function eliminarTarjeta(i){state.tarjetas.splice(i,1);save();renderTarjetas();fillSelects();}
+
+function renderDashboard(){
+  const ganComp=state.compras.reduce((a,c)=>a+c.ganancia,0);
+  const ganPres=state.prestamos.reduce((a,p)=>a+p.ganancia,0);
+  const compCuotasVenc=state.compras.reduce((a,c)=>a+c.cuotas.filter(cu=>!cu.pagada&&isVencida(cu.vence)).length,0);
+  const presCuotasVenc=state.prestamos.reduce((a,p)=>a+p.cuotas.filter(cu=>!cu.pagada&&isVencida(cu.vence)).length,0);
+  const pendiente=state.compras.reduce((a,c)=>a+c.cuotas.filter(cu=>!cu.pagada).length*c.montoCuota,0)+state.prestamos.reduce((a,p)=>a+p.cuotas.filter(cu=>!cu.pagada).length*p.montoCuota,0);
+  
+  document.getElementById('dash-cards').innerHTML=`
+    <div class="stat-card"><div class="label">Ganancia total</div><div class="value ok">$${(ganComp+ganPres).toFixed(0)}</div></div>
+    <div class="stat-card"><div class="label">Gan. compras</div><div class="value">$${ganComp.toFixed(0)}</div></div>
+    <div class="stat-card"><div class="label">Gan. préstamos</div><div class="value">$${ganPres.toFixed(0)}</div></div>
+    <div class="stat-card"><div class="label">Pendiente a cobrar</div><div class="value">${pendiente>0?'$'+pendiente.toFixed(0):'—'}</div></div>
+    <div class="stat-card"><div class="label">Cuotas vencidas</div><div class="value ${compCuotasVenc+presCuotasVenc>0?'warn':'ok'}">${compCuotasVenc+presCuotasVenc}</div></div>
+    <div class="stat-card"><div class="label">Clientes</div><div class="value" style="color:#74b9ff">${state.clientes.length}</div></div>`;
+
+  const rc=document.getElementById('dash-compras');
+  const ultComp=state.compras.slice(-4).reverse();
+  rc.innerHTML=ultComp.length?ultComp.map(c=>`<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--border);font-size:12px"><span>${c.desc}<br><span style="font-size:10px;color:var(--muted)">${getNombreCliente(c.clienteId)}</span></span><span class="profit">+$${c.ganancia.toFixed(0)}</span></div>`).join(''):'<div class="empty">Sin compras</div>';
+
+  const rp=document.getElementById('dash-prestamos');
+  const actPres=state.prestamos.filter(p=>p.cuotas.some(c=>!c.pagada)).slice(-4).reverse();
+  rp.innerHTML=actPres.length?actPres.map(p=>{const pend=p.cuotas.filter(c=>!c.pagada).length*p.montoCuota;return`<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--border);font-size:12px"><span>${getNombreCliente(p.clienteId)}<br><span style="font-size:10px;color:var(--muted)">${p.ncuotas} cuotas • ${p.tasa}%</span></span><span style="color:var(--acc)">$${pend.toFixed(0)}</span></div>`}).join(''):'<div class="empty">Sin préstamos activos</div>';
+
+  const vc=document.getElementById('dash-vencimientos');
+  const vens=[];
+  state.compras.forEach(c=>c.cuotas.forEach(cu=>{if(!cu.pagada&&(isVencida(cu.vence)||isPronto(cu.vence)))vens.push({label:c.desc,cliente:getNombreCliente(c.clienteId),vence:cu.vence,monto:c.montoCuota,tipo:'compra',vencida:isVencida(cu.vence)});}));
+  state.prestamos.forEach(p=>p.cuotas.forEach(cu=>{if(!cu.pagada&&(isVencida(cu.vence)||isPronto(cu.vence)))vens.push({label:'Préstamo',cliente:getNombreCliente(p.clienteId),vence:cu.vence,monto:p.montoCuota,tipo:'prestamo',vencida:isVencida(cu.vence)});}));
+  vens.sort((a,b)=>new Date(a.vence)-new Date(b.vence));
+  vc.innerHTML=vens.length?`<table><thead><tr><th>Cliente</th><th>Detalle</th><th>Vencimiento</th><th>Monto</th><th>Estado</th></tr></thead><tbody>${vens.map(v=>`<tr><td>${v.cliente}</td><td>${v.label}</td><td>${formatFecha(v.vence)}</td><td style="color:var(--acc)">$${v.monto.toFixed(2)}</td><td><span class="badge ${v.vencida?'badge-warn':'badge-pend'}">${v.vencida?'Vencida':'Pronto'}</span></td></tr>`).join('')}</tbody></table>`:'<div class="empty" style="padding:1rem">No hay vencimientos próximos</div>';
+}
+
+load();renderDashboard();fillSelects();renderRates();renderTarjetas();
+
+const today=new Date().toISOString().split('T')[0];
+['c-fecha1','p-fecha1'].forEach(id=>{const el=document.getElementById(id);if(el)el.value=today;});
+</script>
