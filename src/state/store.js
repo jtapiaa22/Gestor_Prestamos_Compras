@@ -33,15 +33,14 @@ export async function initStore() {
         ...parsed,
         tasas: { ...defaultState.tasas, ...(parsed?.tasas || {}) }
       };
+      // Actualizamos la copia local para que refleje fielmente a Supabase
+      localStorage.setItem('fincontrol', JSON.stringify(store));
     } else {
-      console.log('No existen datos base, creando estado vacío en Supabase...');
+      console.log('No existen datos base en Supabase. Iniciando estado vacío...');
       store = JSON.parse(JSON.stringify(defaultState));
-      // Intentar migrar lo local a supabase como semilla inicial si existe
-      const local = localStorage.getItem('fincontrol');
-      if (local) {
-         console.log('Migrando estado de localStorage a Supabase...');
-         store = { ...defaultState, ...JSON.parse(local) };
-      }
+      
+      // Si no existe la fila, limpiamos el localStorage para no revivir datos eliminados
+      localStorage.setItem('fincontrol', JSON.stringify(store));
       await saveStore(); 
     }
   } catch(e) {
