@@ -1,5 +1,5 @@
 import { getStore, saveStore } from '../state/store.js';
-import { uid, formatMoney, isVencida, isPronto, addCuotasVencimiento, formatFecha } from '../utils/helpers.js';
+import { uid, formatMoney, isVencida, isPronto, addCuotasVencimiento, formatFecha, formatCurrencyInput, parseCurrencyInput } from '../utils/helpers.js';
 
 function getNombreCliente(store, id) {
   const c = store.clientes.find(x => x.id === id);
@@ -154,7 +154,7 @@ export function renderCompras(container) {
           </div>
           <div class="form-group">
             <label>Precio al que compró ($)</label>
-            <input type="number" id="c-costo" class="input-control" placeholder="0" min="0">
+            <input type="text" id="c-costo" class="input-control" placeholder="0">
           </div>
           <div class="form-group">
             <label>Cant. de Cuotas</label>
@@ -162,7 +162,7 @@ export function renderCompras(container) {
           </div>
           <div class="form-group">
             <label>Monto a Cobrar por Cuota ($)</label>
-            <input type="number" id="c-montocuota" class="input-control" placeholder="0" min="0">
+            <input type="text" id="c-montocuota" class="input-control" placeholder="0">
           </div>
           <div class="form-group">
             <label>Fecha 1er Vencimiento</label>
@@ -191,9 +191,9 @@ export function renderCompras(container) {
   `;
 
   const calcPreview = () => {
-    const costo = parseFloat(document.getElementById('c-costo').value) || 0;
+    const costo = parseCurrencyInput(document.getElementById('c-costo').value);
     const n = parseInt(document.getElementById('c-ncuotas').value) || 1;
-    const mc = parseFloat(document.getElementById('c-montocuota').value) || 0;
+    const mc = parseCurrencyInput(document.getElementById('c-montocuota').value);
     const total = mc * n;
     const gan = total - costo;
     const pct = costo > 0 ? ((gan / costo) * 100).toFixed(1) : 0;
@@ -212,6 +212,9 @@ export function renderCompras(container) {
   document.getElementById('c-costo').addEventListener('input', calcPreview);
   document.getElementById('c-ncuotas').addEventListener('input', calcPreview);
   document.getElementById('c-montocuota').addEventListener('input', calcPreview);
+  
+  if (document.getElementById('c-costo')) formatCurrencyInput(document.getElementById('c-costo'));
+  if (document.getElementById('c-montocuota')) formatCurrencyInput(document.getElementById('c-montocuota'));
 
   const handleOpenModal = () => window.openModal('modal-new-compra');
 
@@ -230,9 +233,9 @@ export function renderCompras(container) {
   document.getElementById('btn-save-compra').addEventListener('click', () => {
     const cid = document.getElementById('c-cliente').value;
     const desc = document.getElementById('c-desc').value.trim();
-    const costo = parseFloat(document.getElementById('c-costo').value) || 0;
+    const costo = parseCurrencyInput(document.getElementById('c-costo').value);
     const n = parseInt(document.getElementById('c-ncuotas').value) || 1;
-    const mc = parseFloat(document.getElementById('c-montocuota').value) || 0;
+    const mc = parseCurrencyInput(document.getElementById('c-montocuota').value);
     const fecha1 = document.getElementById('c-fecha1').value;
     const tarjeta = document.getElementById('c-tarjeta').value;
 

@@ -1,5 +1,5 @@
 import { getStore, saveStore } from '../state/store.js';
-import { uid, formatMoney, isVencida, isPronto, addCuotasVencimiento, formatFecha, getTasaInterpolada } from '../utils/helpers.js';
+import { uid, formatMoney, isVencida, isPronto, addCuotasVencimiento, formatFecha, getTasaInterpolada, formatCurrencyInput, parseCurrencyInput } from '../utils/helpers.js';
 
 function getNombreCliente(store, id) {
   const c = store.clientes.find(x => x.id === id);
@@ -145,7 +145,7 @@ export function renderPrestamos(container) {
           </div>
           <div class="form-group">
             <label>Monto Prestado ($)</label>
-            <input type="number" id="p-monto" class="input-control" placeholder="0" min="0">
+            <input type="text" id="p-monto" class="input-control" placeholder="0">
           </div>
           <div class="form-group">
             <label>Cant. de Cuotas</label>
@@ -187,7 +187,7 @@ export function renderPrestamos(container) {
   `;
 
   const calcPreview = () => {
-    const m = parseFloat(document.getElementById('p-monto').value) || 0;
+    const m = parseCurrencyInput(document.getElementById('p-monto').value);
     const n = parseInt(document.getElementById('p-ncuotas').value) || 1;
     
     const tasa = store.tasas[n] !== undefined ? store.tasas[n] : getTasaInterpolada(store.tasas, n);
@@ -209,6 +209,8 @@ export function renderPrestamos(container) {
 
   document.getElementById('p-monto').addEventListener('input', calcPreview);
   document.getElementById('p-ncuotas').addEventListener('change', calcPreview);
+  
+  if (document.getElementById('p-monto')) formatCurrencyInput(document.getElementById('p-monto'));
 
   const handleOpenModal = () => window.openModal('modal-new-prestamo');
   
@@ -226,7 +228,7 @@ export function renderPrestamos(container) {
 
   document.getElementById('btn-save-prestamo').addEventListener('click', () => {
     const cid = document.getElementById('p-cliente').value;
-    const m = parseFloat(document.getElementById('p-monto').value) || 0;
+    const m = parseCurrencyInput(document.getElementById('p-monto').value);
     const n = parseInt(document.getElementById('p-ncuotas').value) || 1;
     const fecha1 = document.getElementById('p-fecha1').value;
     
